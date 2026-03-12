@@ -1,0 +1,7 @@
+torch>=2.0
+transformers>=4.35
+seaborn>=0.12
+matplotlib>=3.7
+scipy>=1.11
+numpy>=1.24
+scikit-learn>=1.3
