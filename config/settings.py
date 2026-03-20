@@ -52,3 +52,11 @@ class Config:
     FONT_SIZE_TITLE    = 22
     FONT_SIZE_SUBTITLE = 14
     GRID_COLS          = 4
+
+    # --- Детектор відповідей ---
+    DETECTOR_QUESTIONS = [
+        "What is the capital of France?",
+        "Who invented the telephone?",
+        "What is 2 plus 2?",
+    ]
+    DETECTOR_MAX_TOKENS = 20
