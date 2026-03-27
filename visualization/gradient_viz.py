@@ -37,21 +37,23 @@ def _forward_from_embeds(embeds_with_grad, model, seq_len):
     """
     Проводить forward pass починаючи з готових embeddings.
     Повертає logits (1, seq, vocab) або hidden (1, seq, emb_dim).
+
+    Використовує inputs_embeds у стандартному forward моделі, щоб уникнути
+    несумісності з різними версіями transformers (проблема з block(hidden)[0]
+    де нові версії повертають тензор замість кортежу і [0] зрізає batch-dim).
     """
-    wte, wpe, drop, blocks, ln_f = _get_embed_layer(model)
-
-    position_ids = torch.arange(seq_len).unsqueeze(0)
-    hidden = embeds_with_grad + wpe(position_ids)
-    hidden = drop(hidden)
-    for block in blocks:
-        hidden = block(hidden)[0]
-    hidden = ln_f(hidden)
-
     lm = _lm_head(model)
+
     if lm is not None:
-        return lm(hidden)
-    # GPT2Model не має lm_head — використовуємо wte як проекцію
-    return hidden @ wte.weight.T
+        # GPT2LMHeadModel — є вбудований lm_head
+        outputs = model(inputs_embeds=embeds_with_grad)
+        return outputs.logits
+    else:
+        # GPT2Model без lm_head — проектуємо через wte
+        outputs = model(inputs_embeds=embeds_with_grad)
+        hidden = outputs.last_hidden_state          # (1, seq, emb_dim)
+        wte = _get_embed_layer(model)[0]
+        return hidden @ wte.weight.T
 
 
 class GradientVisualizer:
@@ -230,7 +232,8 @@ class GradientVisualizer:
             hidden = drop(hidden)
 
             for idx, block in enumerate(blocks):
-                hidden = block(hidden)[0]
+                out = block(hidden)
+                hidden = out[0] if isinstance(out, tuple) else out
                 if idx == stop_layer:
                     break
 

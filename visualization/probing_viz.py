@@ -23,24 +23,24 @@ def _collect_all_hidden(model, tokenizer, texts: list[str]):
     Збирає hidden states з усіх шарів для списку текстів.
     Повертає dict: {layer_idx: list of (seq, emb) arrays}
     """
+    # Визначаємо кількість шарів через конфіг моделі
     if hasattr(model, 'h'):
-        wte, wpe, drop, blocks, ln_f = model.wte, model.wpe, model.drop, model.h, model.ln_f
+        num_layers = len(model.h)
     else:
-        t = model.transformer
-        wte, wpe, drop, blocks, ln_f = t.wte, t.wpe, t.drop, t.h, t.ln_f
+        num_layers = len(model.transformer.h)
 
-    num_layers = len(blocks)
     all_states = {i: [] for i in range(num_layers)}
 
     for text in texts:
         inputs = tokenizer(text, return_tensors="pt")
         with torch.no_grad():
-            pos_ids = torch.arange(inputs["input_ids"].shape[1]).unsqueeze(0)
-            hidden  = wte(inputs["input_ids"]) + wpe(pos_ids)
-            hidden  = drop(hidden)
-            for layer_idx, block in enumerate(blocks):
-                hidden = block(hidden)[0]
-                all_states[layer_idx].append(hidden[0].numpy())
+            outputs = model(
+                input_ids=inputs["input_ids"],
+                output_hidden_states=True,
+            )
+        # hidden_states[0] = embedding, [1..n] = після кожного блоку
+        for layer_idx, hidden in enumerate(outputs.hidden_states[1:]):
+            all_states[layer_idx].append(hidden[0].numpy())
 
     return all_states
 
@@ -57,7 +57,6 @@ class ProbingVisualizer:
         all_states = _collect_all_hidden(model, tokenizer, texts)
         num_layers = len(all_states)
 
-        # Формуємо датасет: X = hidden state, y = позиція токена
         X_per_layer = {i: [] for i in range(num_layers)}
         y = []
 
@@ -65,7 +64,6 @@ class ProbingVisualizer:
             inputs = tokenizer(text, return_tensors="pt")
             seq_len = inputs["input_ids"].shape[1]
             for pos in range(seq_len):
-                # Нормалізуємо позицію до [0..4] (5 класів)
                 y.append(min(pos, 4))
 
         y = np.array(y)
@@ -105,7 +103,6 @@ class ProbingVisualizer:
     def plot_word_boundary_probing(self, model, tokenizer, texts: list[str]):
         """
         Probing: чи можна передбачити чи токен є початком слова?
-        (токени що починаються з '·' = початок слова)
         """
         all_states = _collect_all_hidden(model, tokenizer, texts)
         num_layers = len(all_states)
@@ -118,7 +115,6 @@ class ProbingVisualizer:
             raw_tok = tokenizer.convert_ids_to_tokens(inputs["input_ids"][0])
             clean   = clean_tokens(raw_tok)
             for tok in clean:
-                # 1 = початок слова (є пробіл перед), 0 = продовження
                 y.append(1 if tok.startswith("·") else 0)
 
         y = np.array(y)
@@ -137,7 +133,7 @@ class ProbingVisualizer:
             cv_scores = cross_val_score(clf, X_scaled, y, cv=3, scoring="accuracy")
             scores.append(cv_scores.mean())
 
-        baseline = y.mean()  # частка позитивних класів
+        baseline = y.mean()
 
         fig, ax = plt.subplots(figsize=(10, 5))
         colors = plt.cm.get_cmap(self.cfg.CMAP)(np.linspace(0.3, 0.9, num_layers))
@@ -161,37 +157,26 @@ class ProbingVisualizer:
     def plot_causal_tracing(self, model, tokenizer,
                             clean_text: str, corrupted_text: str):
         """
-        Спрощений Causal Tracing:
-        Порівнює hidden states між двома схожими реченнями.
-        Показує в яких шарах і токенах виникає найбільша різниця —
-        де модель "розуміє" що речення відрізняються.
+        Спрощений Causal Tracing: порівнює hidden states між двома реченнями.
         """
-        if hasattr(model, 'h'):
-            wte, wpe, drop, blocks, ln_f = model.wte, model.wpe, model.drop, model.h, model.ln_f
-        else:
-            t = model.transformer
-            wte, wpe, drop, blocks, ln_f = t.wte, t.wpe, t.drop, t.h, t.ln_f
-
         def get_states(text):
             inputs = tokenizer(text, return_tensors="pt",
                                truncation=True, max_length=32)
             tokens = clean_tokens(tokenizer.convert_ids_to_tokens(inputs["input_ids"][0]))
-            states = []
             with torch.no_grad():
-                pos_ids = torch.arange(inputs["input_ids"].shape[1]).unsqueeze(0)
-                h = wte(inputs["input_ids"]) + wpe(pos_ids)
-                h = drop(h)
-                for block in blocks:
-                    h = block(h)[0]
-                    states.append(h[0].numpy())
+                outputs = model(
+                    input_ids=inputs["input_ids"],
+                    output_hidden_states=True,
+                )
+            # [1:] — пропускаємо embedding, беремо після кожного блоку
+            states = [h[0].numpy() for h in outputs.hidden_states[1:]]
             return tokens, states
 
         tokens_c, states_c = get_states(clean_text)
         tokens_r, states_r = get_states(corrupted_text)
 
-        # Обрізаємо до спільної довжини
-        min_len = min(len(tokens_c), len(tokens_r))
-        tokens  = tokens_c[:min_len]
+        min_len    = min(len(tokens_c), len(tokens_r))
+        tokens     = tokens_c[:min_len]
         num_layers = len(states_c)
 
         diff_matrix = np.zeros((num_layers, min_len))
@@ -218,24 +203,18 @@ class ProbingVisualizer:
         plt.tight_layout()
         save_or_show(fig, "26_causal_tracing.png")
 
-
     def plot_probing_per_layer(self, model, tokenizer, texts: list[str]):
         """
-        Для кожного шару окремо: стовпчиковий графік accuracy двох probing задач
-        (позиція + межа слова) поруч.
+        Для кожного шару окремо: стовпчиковий графік accuracy двох probing задач.
         """
         import os
         from utils.plot_utils import _output_dir
-        from sklearn.linear_model import LogisticRegression
-        from sklearn.preprocessing import StandardScaler
-        from sklearn.model_selection import cross_val_score
 
         all_states = _collect_all_hidden(model, tokenizer, texts)
         num_layers = len(all_states)
         out_dir    = os.path.join(_output_dir, "probing_per_layer")
         os.makedirs(out_dir, exist_ok=True)
 
-        # Будуємо мітки
         y_pos, y_bound = [], []
         for text in texts:
             inputs  = tokenizer(text, return_tensors="pt")
@@ -260,9 +239,10 @@ class ProbingVisualizer:
             bars = ax.bar(["Позиція\n(5 класів)", "Межа слова\n(бінарна)"],
                           [s_pos, s_bnd],
                           color=["steelblue", "tomato"])
-            ax.axhline(0.2,  color="steelblue", linestyle="--", alpha=0.5, label="baseline позиція (20%)")
+            ax.axhline(0.2, color="steelblue", linestyle="--", alpha=0.5,
+                       label="baseline позиція (20%)")
             majority = max(y_bound.mean(), 1 - y_bound.mean())
-            ax.axhline(majority, color="tomato",    linestyle="--", alpha=0.5,
+            ax.axhline(majority, color="tomato", linestyle="--", alpha=0.5,
                        label=f"baseline межа ({majority:.0%})")
             ax.set_ylim(0, 1.1)
             ax.set_ylabel("Accuracy (3-fold CV)")

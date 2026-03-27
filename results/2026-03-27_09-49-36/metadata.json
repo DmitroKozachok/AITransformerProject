@@ -1,0 +1,379 @@
+{
+  "timestamp": "2026-03-27T09:49:38.890561",
+  "model": "gpt2",
+  "text": "Discrete mathematics is essential for programming.",
+  "tokens": [
+    "Disc",
+    "rete",
+    "·mathematics",
+    "·is",
+    "·essential",
+    "·for",
+    "·programming",
+    "."
+  ],
+  "num_layers": 12,
+  "inspect_layer": 6,
+  "top_connections": [
+    {
+      "layer": 1,
+      "from": "rete",
+      "to": "Disc",
+      "score": 0.693974
+    },
+    {
+      "layer": 1,
+      "from": "·mathematics",
+      "to": "Disc",
+      "score": 0.41965
+    },
+    {
+      "layer": 1,
+      "from": "·is",
+      "to": "Disc",
+      "score": 0.27425
+    },
+    {
+      "layer": 1,
+      "from": "·essential",
+      "to": "Disc",
+      "score": 0.22476
+    },
+    {
+      "layer": 1,
+      "from": "·programming",
+      "to": "Disc",
+      "score": 0.199148
+    },
+    {
+      "layer": 2,
+      "from": "rete",
+      "to": "Disc",
+      "score": 0.811842
+    },
+    {
+      "layer": 2,
+      "from": "·mathematics",
+      "to": "Disc",
+      "score": 0.574974
+    },
+    {
+      "layer": 2,
+      "from": "·is",
+      "to": "Disc",
+      "score": 0.508269
+    },
+    {
+      "layer": 2,
+      "from": "·essential",
+      "to": "Disc",
+      "score": 0.40235
+    },
+    {
+      "layer": 2,
+      "from": "·for",
+      "to": "Disc",
+      "score": 0.349427
+    },
+    {
+      "layer": 3,
+      "from": "rete",
+      "to": "Disc",
+      "score": 0.959706
+    },
+    {
+      "layer": 3,
+      "from": "·mathematics",
+      "to": "Disc",
+      "score": 0.709044
+    },
+    {
+      "layer": 3,
+      "from": "·is",
+      "to": "Disc",
+      "score": 0.644767
+    },
+    {
+      "layer": 3,
+      "from": "·essential",
+      "to": "Disc",
+      "score": 0.438271
+    },
+    {
+      "layer": 3,
+      "from": "·for",
+      "to": "Disc",
+      "score": 0.339072
+    },
+    {
+      "layer": 4,
+      "from": "rete",
+      "to": "Disc",
+      "score": 0.968996
+    },
+    {
+      "layer": 4,
+      "from": "·is",
+      "to": "Disc",
+      "score": 0.682205
+    },
+    {
+      "layer": 4,
+      "from": "·mathematics",
+      "to": "Disc",
+      "score": 0.678473
+    },
+    {
+      "layer": 4,
+      "from": "·essential",
+      "to": "Disc",
+      "score": 0.558749
+    },
+    {
+      "layer": 4,
+      "from": "·programming",
+      "to": "Disc",
+      "score": 0.526384
+    },
+    {
+      "layer": 5,
+      "from": "rete",
+      "to": "Disc",
+      "score": 0.96353
+    },
+    {
+      "layer": 5,
+      "from": "·is",
+      "to": "Disc",
+      "score": 0.715295
+    },
+    {
+      "layer": 5,
+      "from": "·mathematics",
+      "to": "Disc",
+      "score": 0.649781
+    },
+    {
+      "layer": 5,
+      "from": "·programming",
+      "to": "Disc",
+      "score": 0.603062
+    },
+    {
+      "layer": 5,
+      "from": "·essential",
+      "to": "Disc",
+      "score": 0.595177
+    },
+    {
+      "layer": 6,
+      "from": "rete",
+      "to": "Disc",
+      "score": 0.976412
+    },
+    {
+      "layer": 6,
+      "from": "·mathematics",
+      "to": "Disc",
+      "score": 0.855881
+    },
+    {
+      "layer": 6,
+      "from": "·is",
+      "to": "Disc",
+      "score": 0.832066
+    },
+    {
+      "layer": 6,
+      "from": "·essential",
+      "to": "Disc",
+      "score": 0.792187
+    },
+    {
+      "layer": 6,
+      "from": "·programming",
+      "to": "Disc",
+      "score": 0.784295
+    },
+    {
+      "layer": 7,
+      "from": "rete",
+      "to": "Disc",
+      "score": 0.967566
+    },
+    {
+      "layer": 7,
+      "from": "·mathematics",
+      "to": "Disc",
+      "score": 0.878525
+    },
+    {
+      "layer": 7,
+      "from": "·is",
+      "to": "Disc",
+      "score": 0.778474
+    },
+    {
+      "layer": 7,
+      "from": "·programming",
+      "to": "Disc",
+      "score": 0.769885
+    },
+    {
+      "layer": 7,
+      "from": "·essential",
+      "to": "Disc",
+      "score": 0.75781
+    },
+    {
+      "layer": 8,
+      "from": "rete",
+      "to": "Disc",
+      "score": 0.970002
+    },
+    {
+      "layer": 8,
+      "from": "·mathematics",
+      "to": "Disc",
+      "score": 0.903195
+    },
+    {
+      "layer": 8,
+      "from": "·is",
+      "to": "Disc",
+      "score": 0.865002
+    },
+    {
+      "layer": 8,
+      "from": "·essential",
+      "to": "Disc",
+      "score": 0.839862
+    },
+    {
+      "layer": 8,
+      "from": "·programming",
+      "to": "Disc",
+      "score": 0.817329
+    },
+    {
+      "layer": 9,
+      "from": "rete",
+      "to": "Disc",
+      "score": 0.936862
+    },
+    {
+      "layer": 9,
+      "from": "·mathematics",
+      "to": "Disc",
+      "score": 0.881254
+    },
+    {
+      "layer": 9,
+      "from": "·is",
+      "to": "Disc",
+      "score": 0.799389
+    },
+    {
+      "layer": 9,
+      "from": "·essential",
+      "to": "Disc",
+      "score": 0.795605
+    },
+    {
+      "layer": 9,
+      "from": "·programming",
+      "to": "Disc",
+      "score": 0.701324
+    },
+    {
+      "layer": 10,
+      "from": "rete",
+      "to": "Disc",
+      "score": 0.95793
+    },
+    {
+      "layer": 10,
+      "from": "·mathematics",
+      "to": "Disc",
+      "score": 0.929817
+    },
+    {
+      "layer": 10,
+      "from": "·essential",
+      "to": "Disc",
+      "score": 0.908851
+    },
+    {
+      "layer": 10,
+      "from": "·is",
+      "to": "Disc",
+      "score": 0.862628
+    },
+    {
+      "layer": 10,
+      "from": "·programming",
+      "to": "Disc",
+      "score": 0.821224
+    },
+    {
+      "layer": 11,
+      "from": "rete",
+      "to": "Disc",
+      "score": 0.966399
+    },
+    {
+      "layer": 11,
+      "from": "·mathematics",
+      "to": "Disc",
+      "score": 0.892831
+    },
+    {
+      "layer": 11,
+      "from": "·essential",
+      "to": "Disc",
+      "score": 0.887717
+    },
+    {
+      "layer": 11,
+      "from": "·is",
+      "to": "Disc",
+      "score": 0.849686
+    },
+    {
+      "layer": 11,
+      "from": "·for",
+      "to": "Disc",
+      "score": 0.797209
+    },
+    {
+      "layer": 12,
+      "from": "rete",
+      "to": "Disc",
+      "score": 0.838132
+    },
+    {
+      "layer": 12,
+      "from": "·mathematics",
+      "to": "Disc",
+      "score": 0.766533
+    },
+    {
+      "layer": 12,
+      "from": "·is",
+      "to": "Disc",
+      "score": 0.725333
+    },
+    {
+      "layer": 12,
+      "from": "·programming",
+      "to": "Disc",
+      "score": 0.693874
+    },
+    {
+      "layer": 12,
+      "from": "·essential",
+      "to": "Disc",
+      "score": 0.670249
+    }
+  ]
+}

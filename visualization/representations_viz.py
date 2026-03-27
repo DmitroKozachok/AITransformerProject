@@ -32,24 +32,15 @@ def _collect_hidden_states(model, tokenizer, text: str):
     inputs = tokenizer(text, return_tensors="pt")
     tokens = clean_tokens(tokenizer.convert_ids_to_tokens(inputs["input_ids"][0]))
 
-    blocks, ln_f = _get_blocks_and_components(model)
-
-    if hasattr(model, 'wte'):
-        wte, wpe, drop = model.wte, model.wpe, model.drop
-    else:
-        wte, wpe, drop = model.transformer.wte, model.transformer.wpe, model.transformer.drop
-
     with torch.no_grad():
-        pos_ids = torch.arange(inputs["input_ids"].shape[1]).unsqueeze(0)
-        hidden  = wte(inputs["input_ids"]) + wpe(pos_ids)
-        hidden  = drop(hidden)
+        outputs = model(
+            input_ids=inputs["input_ids"],
+            output_hidden_states=True,
+        )
 
-        states = [hidden[0].numpy()]          # після embedding
-        for block in blocks:
-            hidden = block(hidden)[0]
-            states.append(hidden[0].numpy())  # після кожного блоку
-
-    return tokens, states                     # states[i]: (seq, emb_dim)
+    # outputs.hidden_states: tuple з (num_layers+1) тензорів форми (1, seq, emb_dim)
+    states = [h[0].numpy() for h in outputs.hidden_states]  # знімаємо batch-dim
+    return tokens, states
 
 
 def _collect_residual_contributions(model, tokenizer, text: str):
@@ -200,7 +191,6 @@ class RepresentationsVisualizer:
         plt.subplots_adjust(top=0.88)
         save_or_show(fig, "18_residual_stream.png")
 
-
     def plot_similarity_per_layer(self, model, tokenizer, text: str):
         """Окреме вікно cosine similarity для кожного шару."""
         import os
@@ -227,7 +217,7 @@ class RepresentationsVisualizer:
             save_or_show(fig, f"sim_layer_{i:02d}.png", output_dir=out_dir)
 
     def plot_pca_per_layer(self, model, tokenizer, text: str):
-        """Окреме вікно PCA для кожного шару."""
+        """Окремий вікно PCA для кожного шару."""
         from sklearn.decomposition import PCA
         import os
         from utils.plot_utils import _output_dir

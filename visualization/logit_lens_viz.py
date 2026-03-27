@@ -32,26 +32,30 @@ class LogitLensVisualizer:
         """
         Повертає (tokens, layer_logits) де
         layer_logits[i] — logits (seq, vocab) після i-го шару.
+
+        Використовує output_hidden_states=True щоб уникнути ручного
+        перебору блоків (block(hidden)[0] падає в нових версіях transformers).
         """
         inputs = tokenizer(text, return_tensors="pt")
         tokens = clean_tokens(tokenizer.convert_ids_to_tokens(inputs["input_ids"][0]))
         wte, wpe, drop, blocks, ln_f = _get_components(model)
 
-        layer_logits = []
-
         with torch.no_grad():
-            pos_ids = torch.arange(inputs["input_ids"].shape[1]).unsqueeze(0)
-            hidden  = wte(inputs["input_ids"]) + wpe(pos_ids)
-            hidden  = drop(hidden)
+            outputs = model(
+                input_ids=inputs["input_ids"],
+                output_hidden_states=True,
+            )
 
-            for block in blocks:
-                hidden = block(hidden)[0]
-                # Застосовуємо ln_f і проектуємо на словник
-                normed = ln_f(hidden)
-                logits = normed @ wte.weight.T    # (1, seq, vocab)
-                layer_logits.append(logits[0].numpy())
+        # hidden_states[0] = після embedding, [1..n] = після кожного блоку
+        # Нас цікавлять тільки після блоків: [1:]
+        layer_logits = []
+        for hidden in outputs.hidden_states[1:]:
+            # hidden: (1, seq, emb_dim)
+            normed = ln_f(hidden)
+            logits = normed @ wte.weight.T    # (1, seq, vocab)
+            layer_logits.append(logits[0].detach().numpy())
 
-        return tokens, layer_logits               # list of (seq, vocab)
+        return tokens, layer_logits           # list of (seq, vocab)
 
     # ------------------------------------------------------------------
     def plot_logit_lens(self, model, tokenizer, text: str, top_k: int = 5):
@@ -139,7 +143,6 @@ class LogitLensVisualizer:
             layer_topk.append(list(zip(top_toks, probs[top_ids])))
 
         # Будуємо матрицю: рядки = шари, стовпці = топ-k токени
-        # (тільки унікальні токени що зустрічались)
         all_toks = []
         for row in layer_topk:
             for tok, _ in row:
@@ -169,7 +172,6 @@ class LogitLensVisualizer:
         plt.tight_layout()
         save_or_show(fig, f"20_topk_predictions_pos{pos}.png")
 
-
     def plot_per_layer(self, model, tokenizer, text: str, top_k: int = 5):
         """
         Окреме вікно для кожного шару: топ-k передбачень для всіх позицій.
@@ -185,7 +187,6 @@ class LogitLensVisualizer:
         for layer_idx, logits in enumerate(layer_logits):
             probs = torch.softmax(torch.tensor(logits), dim=-1).numpy()
 
-            # Для кожної позиції — топ-k токенів і їх ймовірності
             fig, axes = plt.subplots(1, seq_len, figsize=(3 * seq_len, 5))
             if seq_len == 1:
                 axes = [axes]

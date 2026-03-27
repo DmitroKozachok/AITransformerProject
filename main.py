@@ -173,7 +173,7 @@ def main():
 
     print("  PCA по шарах...")
     repr_viz.plot_pca_per_layer(model, tokenizer, Config.TEXT)
-
+\
     print("  Cosine similarity по шарах...")
     repr_viz.plot_similarity_per_layer(model, tokenizer, Config.TEXT)
 
