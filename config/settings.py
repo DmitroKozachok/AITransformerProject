@@ -60,3 +60,9 @@ class Config:
         "What is 2 plus 2?",
     ]
     DETECTOR_MAX_TOKENS = 20
+    INNER_SPEECH_TOP_K  = 5   # скільки кандидатів показувати
+
+    # --- Задача 3 ---
+    TASK3_DATASET_SOURCE = "builtin"  # "builtin" або "huggingface"
+    TASK3_N_SAMPLES      = 100         # кількість питань (None = всі)
+    TASK3_MAX_NEW_TOKENS = 20         # довжина відповіді
